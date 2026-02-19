@@ -5578,21 +5578,21 @@ async def message_handler(update: Update, context):
     # Обрезаем если слишком длинное
                 if len(first_message_text) > 100:
                     first_message_text = first_message_text[:100] + "..."
-                    await context.bot.send_message(
-                        chat_id=ADMIN_GROUP_ID, 
-                        message_thread_id=PENDING_CHATS_THREAD_ID,
-                        text=f"{COLORS['purple']} 🆕 НОВАЯ ЗАЯВКА\n\n"
-                            f"{COLORS['blue']} 👤 От: {user.full_name}\n"
-                            f"{COLORS['violet']} 🆔 ID: {user.id}\n"
-                            f"{COLORS['night']} 📱 Username: @{user.username}\n"
-                            f"{COLORS['purple']} 📋 Тип: {msg_type_name}\n"
-                            f"{COLORS['blue']} 📝 Первое сообщение:\n"
-                            f"└ {first_message_text}\n\n"
-                            f"{COLORS['violet']} 🔗 Чат: {thread_name}",
-                        reply_markup=InlineKeyboardMarkup([[
-                            create_fancy_button("✅ Взять в работу", f"take_chat_{user.id}", 'moon')
-                        ]])
-                    )
+                await context.bot.send_message(
+                    chat_id=ADMIN_GROUP_ID, 
+                    message_thread_id=PENDING_CHATS_THREAD_ID,
+                    text=f"{COLORS['purple']} 🆕 НОВАЯ ЗАЯВКА\n\n"
+                        f"{COLORS['blue']} 👤 От: {user.full_name}\n"
+                        f"{COLORS['violet']} 🆔 ID: {user.id}\n"
+                        f"{COLORS['night']} 📱 Username: @{user.username}\n"
+                        f"{COLORS['purple']} 📋 Тип: {msg_type_name}\n"
+                        f"{COLORS['blue']} 📝 Первое сообщение:\n"
+                        f"└ {first_message_text}\n\n"
+                        f"{COLORS['violet']} 🔗 Чат: {thread_name}",
+                    reply_markup=InlineKeyboardMarkup([[
+                        create_fancy_button("✅ Взять в работу", f"take_chat_{user.id}", 'moon')
+                    ]])
+                )
 
         # Обработка сообщений от админов в тредах
         if user_tag and chat_id == ADMIN_GROUP_ID and message_thread_id:
@@ -9575,3 +9575,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
