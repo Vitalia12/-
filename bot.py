@@ -3815,16 +3815,19 @@ async def show_pending_chats(query, context):
         )
         return
 
-    text = f"{COLORS['purple']} ⏳ Ожидающие заявки\n\n"
+    text = f"{COLORS['purple']} ⏳ ОЖИДАЮЩИЕ ЗАЯВКИ\n\n"
     keyboard = []
 
     for chat in chats[:10]:
         user_id, user_name, msg_type, first_msg, created_at, thread_id = chat
         preview = first_msg[:50] + "..." if len(first_msg) > 50 else first_msg
+        created_short = created_at[:16] if created_at else "неизв."
+        
         text += f"{COLORS['blue']} 👤 {user_name}\n"
-        text += f"{COLORS['violet']}    Тип: {msg_type}\n"
-        text += f"{COLORS['night']}    📝 {preview}\n"
-        text += f"{COLORS['purple']}    ⏱ {created_at[:16]}\n\n"
+        text += f"{COLORS['violet']}    🆔 ID: {user_id}\n"
+        text += f"{COLORS['night']}    📋 Тип: {msg_type}\n"
+        text += f"{COLORS['purple']}    📝 {preview}\n"
+        text += f"{COLORS['blue']}    ⏱ {created_short}\n\n"
         keyboard.append([create_fancy_button(f"✅ Взять: {user_name}", f"take_chat_{user_id}", 'moon')])
 
     keyboard.append([create_fancy_button("◀️ Назад", "admin_main_menu", 'fog')])
@@ -5563,20 +5566,33 @@ async def message_handler(update: Update, context):
             )
 
             if PENDING_CHATS_THREAD_ID:
-                await context.bot.send_message(
-                    chat_id=ADMIN_GROUP_ID, 
-                    message_thread_id=PENDING_CHATS_THREAD_ID,
-                    text=f"{COLORS['purple']} 🆕 Новая заявка\n{COLORS['blue']} От: {user.full_name}\n{COLORS['violet']} Тип: {msg_type_name}\n{COLORS['night']} Чат: {thread_name}",
-                    reply_markup=InlineKeyboardMarkup([[
-                        create_fancy_button("✅ Взять в работу", f"take_chat_{user.id}", 'moon')
-                    ]])
-                )
-
-            await update.message.reply_text(
-                f"{COLORS['purple']} Ваша заявка создана! Ищем админа {COLORS['cloud']}")
-            del context.user_data['awaiting_message']
-            del context.user_data['awaiting_message_type']
-            return
+    # Получаем текст первого сообщения
+                first_message_text = ""
+                if update.message.text:
+                    first_message_text = update.message.text
+                elif update.message.caption:
+                    first_message_text = update.message.caption
+                else:
+                    first_message_text = f"[{content_type}]"
+    
+    # Обрезаем если слишком длинное
+                if len(first_message_text) > 100:
+                    first_message_text = first_message_text[:100] + "..."
+                    await context.bot.send_message(
+                        chat_id=ADMIN_GROUP_ID, 
+                        message_thread_id=PENDING_CHATS_THREAD_ID,
+                        text=f"{COLORS['purple']} 🆕 НОВАЯ ЗАЯВКА\n\n"
+                            f"{COLORS['blue']} 👤 От: {user.full_name}\n"
+                            f"{COLORS['violet']} 🆔 ID: {user.id}\n"
+                            f"{COLORS['night']} 📱 Username: @{user.username}\n"
+                            f"{COLORS['purple']} 📋 Тип: {msg_type_name}\n"
+                            f"{COLORS['blue']} 📝 Первое сообщение:\n"
+                            f"└ {first_message_text}\n\n"
+                            f"{COLORS['violet']} 🔗 Чат: {thread_name}",
+                        reply_markup=InlineKeyboardMarkup([[
+                            create_fancy_button("✅ Взять в работу", f"take_chat_{user.id}", 'moon')
+                        ]])
+                    )
 
         # Обработка сообщений от админов в тредах
         if user_tag and chat_id == ADMIN_GROUP_ID and message_thread_id:
@@ -7361,10 +7377,31 @@ async def handle_user_message_command(update: Update, context):
     )
     
     if PENDING_CHATS_THREAD_ID:
+        # Получаем текст первого сообщения
+        first_message_text = ""
+        if update.message.text:
+            first_message_text = update.message.text
+        elif update.message.caption:
+            first_message_text = update.message.caption
+        else:
+            content_type = get_message_type(update.message)
+            first_message_text = f"[{content_type}]"
+    
+    # Обрезаем если слишком длинное
+        if len(first_message_text) > 100:
+            first_message_text = first_message_text[:100] + "..."
+    
         await context.bot.send_message(
             chat_id=ADMIN_GROUP_ID,
             message_thread_id=PENDING_CHATS_THREAD_ID,
-            text=f"{COLORS['purple']} 🆕 Новая заявка\n{COLORS['blue']} От: {user.full_name}\n{COLORS['violet']} Тип: {msg_type_name}\n{COLORS['night']} Чат: {thread_name}",
+            text=f"{COLORS['purple']} 🆕 НОВАЯ ЗАЯВКА\n\n"
+                 f"{COLORS['blue']} 👤 От: {user.full_name}\n"
+                 f"{COLORS['violet']} 🆔 ID: {user.id}\n"
+                 f"{COLORS['night']} 📱 Username: @{user.username}\n"
+                 f"{COLORS['purple']} 📋 Тип: {msg_type_name}\n"
+                 f"{COLORS['blue']} 📝 Первое сообщение:\n"
+                 f"└ {first_message_text}\n\n"
+                 f"{COLORS['violet']} 🔗 Чат: {thread_name}",
             reply_markup=InlineKeyboardMarkup([[
                 create_fancy_button("✅ Взять в работу", f"take_chat_{user.id}", 'moon')
             ]])
@@ -9536,4 +9573,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
